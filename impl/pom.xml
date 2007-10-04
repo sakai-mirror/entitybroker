@@ -20,7 +20,11 @@
    </parent>
 
    <dependencies>
-
+      <dependency>
+         <groupId>org.cliffc</groupId>
+         <artifactId>high-scale-lib</artifactId>
+         <version>0.17</version>
+      </dependency>
       <!-- internal dependencies -->
       <dependency>
          <groupId>org.sakaiproject.entitybroker</groupId>

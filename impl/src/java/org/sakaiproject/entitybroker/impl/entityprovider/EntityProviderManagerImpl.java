@@ -8,16 +8,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import org.sakaiproject.entitybroker.EntityReference;
 import org.sakaiproject.entitybroker.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybroker.entityprovider.EntityProvider;
 import org.sakaiproject.entitybroker.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybroker.entityprovider.capabilities.ReferenceParseable;
+import org.sakaiproject.entitybroker.impl.BlankReferenceParseable;
 import org.sakaiproject.entitybroker.impl.util.ReflectUtil;
 
 /**
@@ -30,9 +31,12 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
 
    private static Log log = LogFactory.getLog(EntityProviderManagerImpl.class);
 
-   private ConcurrentMap<String, EntityProvider> prefixMap = new ConcurrentHashMap<String, EntityProvider>();
+   // placeholder value indicating that this reference is parsed internally
+   private static ReferenceParseable internalRP = new BlankReferenceParseable();
+   
+   private ConcurrentMap<String, EntityProvider> prefixMap = new NonBlockingHashMap<String, EntityProvider>();
 
-   private ConcurrentMap<String, ReferenceParseable> parseMap = new ConcurrentHashMap<String, ReferenceParseable>();
+   private ConcurrentMap<String, ReferenceParseable> parseMap = new NonBlockingHashMap<String, ReferenceParseable>();
    
    public void init() {
       log.info("init");
@@ -130,6 +134,9 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
       List<Class<? extends EntityProvider>> superclasses = getCapabilities(entityProvider);
       for (Class<? extends EntityProvider> superclazz : superclasses) {
          registerPrefixCapability(prefix, superclazz, entityProvider);
+      }
+      if (!superclasses.contains(ReferenceParseable.class)) {
+        registerPrefixCapability(prefix, ReferenceParseable.class, internalRP);
       }
    }
 
