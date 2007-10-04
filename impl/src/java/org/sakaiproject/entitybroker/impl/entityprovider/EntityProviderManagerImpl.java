@@ -5,14 +5,16 @@
 package org.sakaiproject.entitybroker.impl.entityprovider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import org.sakaiproject.entitybroker.EntityReference;
 import org.sakaiproject.entitybroker.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybroker.entityprovider.EntityProvider;
@@ -33,11 +35,15 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
 
    // placeholder value indicating that this reference is parsed internally
    private static ReferenceParseable internalRP = new BlankReferenceParseable();
-   
-   private ConcurrentMap<String, EntityProvider> prefixMap = new NonBlockingHashMap<String, EntityProvider>();
 
-   private ConcurrentMap<String, ReferenceParseable> parseMap = new NonBlockingHashMap<String, ReferenceParseable>();
-   
+   // writeable maps
+   private ConcurrentMap<String, EntityProvider> prefixWriteMap = new ConcurrentHashMap<String, EntityProvider>();
+   private ConcurrentMap<String, ReferenceParseable> parseWriteMap = new ConcurrentHashMap<String, ReferenceParseable>();
+
+   // readonly maps
+   private Map<String, EntityProvider> prefixMap = new HashMap<String, EntityProvider>();
+   private Map<String, ReferenceParseable> parseMap = new HashMap<String, ReferenceParseable>();
+
    public void init() {
       log.info("init");
    }
@@ -51,21 +57,11 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
       return bikey.substring(0, slashpos);
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.EntityProviderManager#getProviderByReference(java.lang.String)
-    */
    public EntityProvider getProviderByReference(String reference) {
       String prefix = EntityReference.getPrefix(reference);
       return getProviderByPrefix(prefix);
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.managers.EntityProviderManager#getProviderByPrefix(java.lang.String)
-    */
    public EntityProvider getProviderByPrefix(String prefix) {
       EntityProvider provider = getProviderByPrefixAndCapability(prefix, CoreEntityProvider.class);
       if (provider == null) {
@@ -74,29 +70,18 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
       return provider;
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.entityprovider.EntityProviderManager#getProviderByPrefixAndCapability(java.lang.String,
-    *      java.lang.Class)
-    */
    public EntityProvider getProviderByPrefixAndCapability(String prefix,
          Class<? extends EntityProvider> capability) {
       if (capability == null) {
          throw new NullPointerException("capability cannot be null");
       }
       if (ReferenceParseable.class.isAssignableFrom(capability)) {
-        return parseMap.get(prefix);
+         return parseMap.get(prefix);
       }
       String bikey = getBiKey(prefix, capability);
       return prefixMap.get(bikey);
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.entityprovider.EntityProviderManager#getRegisteredPrefixes()
-    */
    public Set<String> getRegisteredPrefixes() {
       Set<String> togo = new HashSet<String>();
       for (String bikey : prefixMap.keySet()) {
@@ -124,11 +109,6 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
       return new ArrayList<Class<? extends EntityProvider>>(capabilities);
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.entityprovider.EntityProviderManager#registerEntityProvider(org.sakaiproject.entitybroker.entityprovider.EntityProvider)
-    */
    public void registerEntityProvider(EntityProvider entityProvider) {
       String prefix = entityProvider.getEntityPrefix();
       List<Class<? extends EntityProvider>> superclasses = getCapabilities(entityProvider);
@@ -136,15 +116,10 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
          registerPrefixCapability(prefix, superclazz, entityProvider);
       }
       if (!superclasses.contains(ReferenceParseable.class)) {
-        registerPrefixCapability(prefix, ReferenceParseable.class, internalRP);
+         registerPrefixCapability(prefix, ReferenceParseable.class, internalRP);
       }
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.EntityProviderManager#unregisterEntityBroker(org.sakaiproject.entitybroker.EntityProvider)
-    */
    public void unregisterEntityProvider(EntityProvider entityProvider) {
       final String prefix = entityProvider.getEntityPrefix();
       List<Class<? extends EntityProvider>> superclasses = getCapabilities(entityProvider);
@@ -153,8 +128,8 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
          // there is a call to unregisterEntityProviderByPrefix
          if (superclazz == EntityProvider.class) {
             if (getProviderByPrefixAndCapability(prefix, EntityProvider.class) != null) {
-               registerEntityProvider(new EntityProvider() {
-
+               // entity provider inner class
+               registerEntityProvider( new EntityProvider() {
                   public String getEntityPrefix() {
                      return prefix;
                   }
@@ -166,26 +141,16 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
       }
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.entityprovider.EntityProviderManager#unregisterEntityProviderCapability(java.lang.String,
-    *      java.lang.Class)
-    */
    public void unregisterCapability(String prefix, Class<? extends EntityProvider> capability) {
       if (capability == EntityProvider.class) {
          throw new IllegalArgumentException(
-               "Cannot separately unregister root EntityProvider capability - use unregisterEntityProviderByPrefix instead");
+               "Cannot separately unregister root EntityProvider capability - " 
+               + "use unregisterEntityProviderByPrefix instead");
       }
-      String key = getBiKey(prefix, capability);
-      prefixMap.remove(key);
+      String bikey = getBiKey(prefix, capability);
+      removePrefixKey(bikey);
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entitybroker.EntityProviderManager#unregisterEntityProviderByPrefix(java.lang.String)
-    */
    public void unregisterEntityProviderByPrefix(String prefix) {
       if (prefix == null) {
          throw new NullPointerException("prefix cannot be null");
@@ -193,27 +158,52 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
       for (String bikey : prefixMap.keySet()) {
          String keypref = getPrefix(bikey);
          if (keypref.equals(prefix)) {
-            prefixMap.remove(bikey);
+            removePrefixKey(bikey);
          }
       }
    }
 
    /**
-    * Allows for easy registration of a prefix and capability
+    * Removes a key from the maps and updates the read maps if needed,
+    * this is the only place where we remove from the maps
     * 
-    * @param prefix
-    * @param capability
-    * @param provider
+    * @param key a bikey
+    * @return true if key was found and removed, false if key not found
+    */
+   private boolean removePrefixKey(String key) {
+      if (prefixWriteMap.remove(key) != null) {
+         prefixMap = new HashMap<String, EntityProvider>(prefixWriteMap);
+         return true;
+      }
+      return false;
+   }
+
+   /**
+    * Allows for easy registration of a prefix and capability,
+    * this is the only place where we insert to the maps
+    * 
+    * @param prefix entity prefix
+    * @param capability the capability class
+    * @param provider the provider to register
     * @return true if the provider is newly registered, false if it was already registered
     */
    public boolean registerPrefixCapability(String prefix,
-         Class<? extends EntityProvider> capability, EntityProvider entityProvider) {
+         Class<? extends EntityProvider> capability, 
+         EntityProvider entityProvider) {
       if (ReferenceParseable.class.isAssignableFrom(capability)) {
-        return parseMap.put(prefix, (ReferenceParseable) entityProvider) == null;
+         boolean result = parseWriteMap.put(prefix, (ReferenceParseable) entityProvider) == null;
+         if (result) {
+            parseMap = new HashMap<String, ReferenceParseable>(parseWriteMap);
+         }
+         return result;
       }
       else {
-        String key = getBiKey(prefix, capability);
-        return prefixMap.put(key, entityProvider) == null;
+         String key = getBiKey(prefix, capability);
+         boolean result = prefixWriteMap.put(key, entityProvider) == null;
+         if (result) {
+            prefixMap = new HashMap<String, EntityProvider>(prefixWriteMap);
+         }
+         return result;
       }
    }
 

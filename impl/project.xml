@@ -127,16 +127,6 @@
          <version>2.7.6</version>
       </dependency>
       
-      <!-- Cliff Click -->
-      <dependency>
-         <groupId>org.cliffc</groupId>
-         <artifactId>high-scale-lib</artifactId>
-         <version>0.17</version>
-          <properties>
-            <war.bundle>true</war.bundle>
-         </properties>
-      </dependency>
-
       <!-- Apache commons dependencies -->
       <dependency>
          <groupId>commons-logging</groupId>
