@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import org.sakaiproject.entitybroker.EntityReference;
 import org.sakaiproject.entitybroker.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybroker.entityprovider.EntityProvider;
@@ -34,9 +34,9 @@ public class EntityProviderManagerImpl implements EntityProviderManager {
    // placeholder value indicating that this reference is parsed internally
    private static ReferenceParseable internalRP = new BlankReferenceParseable();
    
-   private ConcurrentMap<String, EntityProvider> prefixMap = new NonBlockingHashMap<String, EntityProvider>();
+   private ConcurrentMap<String, EntityProvider> prefixMap = new ConcurrentHashMap<String, EntityProvider>();
 
-   private ConcurrentMap<String, ReferenceParseable> parseMap = new NonBlockingHashMap<String, ReferenceParseable>();
+   private ConcurrentMap<String, ReferenceParseable> parseMap = new ConcurrentHashMap<String, ReferenceParseable>();
    
    public void init() {
       log.info("init");

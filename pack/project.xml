@@ -42,15 +42,6 @@
       </properties>
     </dependency>
     
-    <dependency>
-      <groupId>org.cliffc</groupId>
-      <artifactId>high-scale-lib</artifactId>
-      <version>0.17</version>
-      <properties>
-        <war.bundle>true</war.bundle>
-      </properties>
-    </dependency>
-
   </dependencies>
 
   <build>
