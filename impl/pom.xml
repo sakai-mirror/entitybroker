@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>Sakai Entity Broker Implementation</name>
 	<groupId>org.sakaiproject.entitybroker</groupId>
@@ -94,26 +91,32 @@
             <type>jar</type>
         </dependency>
 
-        <!-- for managing classloaders and reflection -->
-        <dependency>
-            <groupId>com.google.code.guice</groupId>
-            <artifactId>guice</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
-        </dependency>
-
-		<!-- required for bean cloning -->
+		<!-- required for bean cloning and reflection -->
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.7.0</version>
+			<version>1.8.0-BETA</version>
+            <type>jar</type>
 		</dependency>
 
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
 			<version>3.2</version>
+			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
+
+        <!-- for managing classloaders and reflection -->
+<!--
+        <dependency>
+            <groupId>com.google.code.guice</groupId>
+            <artifactId>guice</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+            <scope>runtime</scope>
+        </dependency>
+-->
 
 		<!-- Required for hibernate 3 HQL queries -->
 		<dependency>

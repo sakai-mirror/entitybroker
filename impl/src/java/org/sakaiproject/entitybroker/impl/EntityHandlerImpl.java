@@ -29,9 +29,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.commons.beanutils.ConvertUtilsBean;
-import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -64,6 +61,7 @@ import org.sakaiproject.entitybroker.entityprovider.extension.Formats;
 import org.sakaiproject.entitybroker.entityprovider.extension.RequestGetter;
 import org.sakaiproject.entitybroker.entityprovider.search.Restriction;
 import org.sakaiproject.entitybroker.entityprovider.search.Search;
+import org.sakaiproject.entitybroker.exception.EncodingException;
 import org.sakaiproject.entitybroker.exception.EntityException;
 import org.sakaiproject.entitybroker.impl.entityprovider.extension.RequestGetterImpl;
 import org.sakaiproject.entitybroker.impl.util.EntityXStream;
@@ -86,8 +84,13 @@ import com.thoughtworks.xstream.io.xml.XppDomDriver;
 @SuppressWarnings("deprecation")
 public class EntityHandlerImpl implements EntityRequestHandler {
 
+   private static final String POST_METHOD = "_method";
+
    private static Log log = LogFactory.getLog(EntityHandlerImpl.class);
 
+   // must be the same as the string in DirectServlet with the same name
+   private static final String ORIGINAL_METHOD = "_originalMethod";
+   
    private EntityProviderManager entityProviderManager;
    public void setEntityProviderManager(EntityProviderManager entityProviderManager) {
       this.entityProviderManager = entityProviderManager;
@@ -119,11 +122,9 @@ public class EntityHandlerImpl implements EntityRequestHandler {
    private static final String COLLECTION = "-collection";
 
    private ReflectUtil reflectUtil = new ReflectUtil();
-   private PropertyUtilsBean propertyUtils = new PropertyUtilsBean();
-   /**
-    * We are using this instead of the static version so we can manage our own caching
-    */
-   private BeanUtilsBean beanUtils = new BeanUtilsBean(new ConvertUtilsBean(), propertyUtils);
+   public ReflectUtil getReflectUtil() {
+      return reflectUtil;
+   }
 
    /**
     * Determines if an entity exists based on the reference
@@ -307,7 +308,8 @@ public class EntityHandlerImpl implements EntityRequestHandler {
             Map<String, String[]> params = req.getParameterMap();
             if (params != null) {
                for (String key : params.keySet()) {
-                  if ("_method".equals(key)) {
+                  if (POST_METHOD.equals(key) 
+                        || ORIGINAL_METHOD.equals(key)) {
                      // skip the method
                      continue;
                   }
@@ -443,15 +445,15 @@ public class EntityHandlerImpl implements EntityRequestHandler {
             String prefix = view.getEntityReference().getPrefix();
             res.setStatus(HttpServletResponse.SC_OK); // other things can switch this later on
 
-            // store the current request and response
-            ((RequestGetterImpl) requestGetter).setRequest(req);
-            ((RequestGetterImpl) requestGetter).setResponse(res);
-
             // check for extensions
             if (view.getExtension() == null) {
                view.setExtension(Formats.HTML); // update the view
             }
             req.setAttribute("extension", view.getExtension());
+
+            // store the current request and response
+            ((RequestGetterImpl) requestGetter).setRequest(req);
+            ((RequestGetterImpl) requestGetter).setResponse(res);
 
             // handle the before interceptor
             RequestInterceptor interceptor = (RequestInterceptor) entityProviderManager.getProviderByPrefixAndCapability(prefix, RequestInterceptor.class);
@@ -470,6 +472,11 @@ public class EntityHandlerImpl implements EntityRequestHandler {
                // identify the type of request (input or output) and the action (will be encoded in the viewKey)
                boolean output = false;
                String method = req.getMethod() == null ? "GET" : req.getMethod().toUpperCase().trim();
+               // this fails because the original post gets lost therefore we are giving up on this for now
+//               // check to see if the original method value was set
+//               if (req.getAttribute(ORIGINAL_METHOD) != null) {
+//                  method = (String) req.getAttribute(ORIGINAL_METHOD);
+//               }
                if ("GET".equals(method)) {
                   output = true;
                } else {
@@ -479,7 +486,7 @@ public class EntityHandlerImpl implements EntityRequestHandler {
                   } else if ("PUT".equals(method)) {
                      view.setViewKey(EntityView.VIEW_EDIT);
                   } else if ("POST".equals(method)) {
-                     String _method = req.getParameter("_method");
+                     String _method = req.getParameter(POST_METHOD);
                      if (_method == null) {
                         // this better be a create request
                         view.setViewKey(EntityView.VIEW_NEW);
@@ -648,6 +655,11 @@ public class EntityHandlerImpl implements EntityRequestHandler {
             if (interceptor != null) {
                interceptor.after(view, req, res);
             }
+
+            // clear the request getter
+            ((RequestGetterImpl) requestGetter).setRequest(null);
+            ((RequestGetterImpl) requestGetter).setResponse(null);
+
             handledReference = view.getEntityReference().toString();
          }
       }
@@ -754,7 +766,7 @@ public class EntityHandlerImpl implements EntityRequestHandler {
             if (entity != null) {
                sb.append("      <entityClass>\n");
                sb.append("        <class>"+ entity.getClass().getName() +"</class>\n");
-               Map<String, Class<?>> entityTypes = reflectUtil.getObjectTypes(entity.getClass());
+               Map<String, Class<?>> entityTypes = reflectUtil.getFieldTypes(entity.getClass());
                ArrayList<String> keys = new ArrayList<String>(entityTypes.keySet());
                Collections.sort(keys);
                for (String key : keys) {
@@ -813,7 +825,7 @@ public class EntityHandlerImpl implements EntityRequestHandler {
             if (entity != null) {
                sb.append("      <h4>Entity class : "+ entity.getClass().getName() +"</h4>\n");
                sb.append("        <ul>\n");
-               Map<String, Class<?>> entityTypes = reflectUtil.getObjectTypes(entity.getClass());
+               Map<String, Class<?>> entityTypes = reflectUtil.getFieldTypes(entity.getClass());
                ArrayList<String> keys = new ArrayList<String>(entityTypes.keySet());
                Collections.sort(keys);
                for (String key : keys) {
@@ -1002,7 +1014,7 @@ public class EntityHandlerImpl implements EntityRequestHandler {
                   if (params != null && params.size() > 0) {
                      entity = current;
                      try {
-                        beanUtils.populate(entity, params);
+                        reflectUtil.populateFromParams(entity, params);
                      } catch (Exception e) {
                         throw new IllegalArgumentException("Unable to populate bean for ref ("+ref+") from request: " + e.getMessage(), e);
                      }
@@ -1028,6 +1040,8 @@ public class EntityHandlerImpl implements EntityRequestHandler {
                      // translate using the encoder
                      entity = encoder.fromXML(input, current);
                      // END run in classloader
+                  } catch (RuntimeException e) {
+                     throw new EncodingException("Failure during internal input encoding of entity: " + ref, ref.toString(), e);
                   } finally {
                      encoder.setClassLoader(currentClassLoader);
                   }
@@ -1035,6 +1049,8 @@ public class EntityHandlerImpl implements EntityRequestHandler {
                }
             }
          }
+      } else {
+         throw new IllegalArgumentException("This entity ("+ref+") does not allow input translation");
       }
 
       if (entity == null) {
@@ -1125,13 +1141,18 @@ public class EntityHandlerImpl implements EntityRequestHandler {
          // encoding a single entity
          Object toEncode = entities.get(0);
          if (toEncode == null) {
-            throw new RuntimeException("Failed to encode data for entity (" + ref.toString() + "), entity object to encode could not be found");
+            throw new EncodingException("Failed to encode data for entity (" + ref 
+                  + "), entity object to encode could not be found", ref.toString());
          } else {
             Class<?> encodeClass = toEncode.getClass();
             if (encoder != null) {
                encoder.alias(ref.getPrefix(), encodeClass); // add alias for the current entity prefix
             }
-            encoded = encodeEntity(ref, workingView, toEncode, encoder);
+            try {
+               encoded = encodeEntity(ref, workingView, toEncode, encoder);
+            } catch (RuntimeException e) {
+               throw new EncodingException("Failure during internal output encoding of entity: " + ref, ref.toString(), e);
+            }
          }
       }
       // put the encoded data into the OS
@@ -1139,9 +1160,9 @@ public class EntityHandlerImpl implements EntityRequestHandler {
          byte[] b = encoded.getBytes(UTF_8);
          output.write(b);
       } catch (UnsupportedEncodingException e) {
-         throw new RuntimeException("Failed to encode UTF-8: " + ref.toString(), e);
+         throw new EncodingException("Failed to encode UTF-8: " + ref, ref.toString(), e);
       } catch (IOException e) {
-         throw new RuntimeException("Failed to encode into output stream: " + ref.toString(), e);
+         throw new EncodingException("Failed to encode into output stream: " + ref, ref.toString(), e);
       }
    }
 

@@ -157,18 +157,20 @@
         </dependency>
 
         <!-- for managing classloaders and reflection -->
+<!--
         <dependency>
             <groupId>com.google.code.guice</groupId>
             <artifactId>guice</artifactId>
             <version>1.0</version>
             <type>jar</type>
         </dependency>
+-->
 
 		<!-- required for bean cloning -->
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.7.0</version>
+			<version>1.8.0-BETA</version>
 		</dependency>
 
 		<dependency>
