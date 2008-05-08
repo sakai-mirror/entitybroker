@@ -275,11 +275,12 @@ public class EntityReference {
     */
    protected static void checkPrefixId(String prefix, String id) {
       if (prefix == null || prefix.equals("") || id == null) {
-         throw new IllegalArgumentException("prefix and id cannot be null (prefix cannot be empty) to get entity reference");
+         throw new IllegalArgumentException("prefix ("+prefix+") and id ("+id+") cannot be null (prefix cannot be empty) to get entity reference");
       }
-      if (! prefix.matches(TemplateParseUtil.VALID_VAR_CHARS+"+") 
-            || ! id.matches(TemplateParseUtil.VALID_VAR_CHARS+"*") ) {
-         throw new IllegalArgumentException("prefix and id must contain only valid chars: " + TemplateParseUtil.VALID_VAR_CHARS);
+      boolean prefixOK = prefix.matches(TemplateParseUtil.VALID_VAR_CHARS+"+");
+      boolean idOK = id.matches(TemplateParseUtil.VALID_VAR_CHARS+"*");
+      if (! prefixOK || ! idOK ) {
+         throw new IllegalArgumentException("prefix ("+prefix+") and id ("+id+") must contain only valid chars: " + TemplateParseUtil.VALID_VAR_CHARS);
       }
    }
 
