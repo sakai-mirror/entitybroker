@@ -1,4 +1,4 @@
--- MySQL DDL to create table
+-- DB2 DDL to create table
 CREATE TABLE {TABLENAME} (
     {ID}            bigint(20) AUTO_INCREMENT NOT NULL PRIMARY KEY,
     entityRef       varchar(255) NOT NULL,
