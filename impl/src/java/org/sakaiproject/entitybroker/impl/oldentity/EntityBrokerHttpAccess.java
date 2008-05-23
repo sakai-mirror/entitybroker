@@ -1,5 +1,15 @@
 /**
- * EntityBrokerHttpAccess.java - created by antranig on 14 May 2007
+ * $Id$
+ * $URL$
+ * EBlogic.java - entity-broker - Apr 15, 2008 4:29:18 PM - azeckoski
+ **************************************************************************
+ * Copyright (c) 2008 Centre for Applied Research in Educational Technologies, University of Cambridge
+ * Licensed under the Educational Community License version 1.0
+ * 
+ * A copy of the Educational Community License has been included in this 
+ * distribution and is available at: http://www.opensource.org/licenses/ecl1.php
+ *
+ * Aaron Zeckoski (azeckoski@gmail.com) (aaronz@vt.edu) (aaron@caret.cam.ac.uk)
  */
 
 package org.sakaiproject.entitybroker.impl.oldentity;
@@ -18,7 +28,7 @@ import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.entitybroker.EntityReference;
 import org.sakaiproject.entitybroker.access.HttpServletAccessProvider;
 import org.sakaiproject.entitybroker.access.HttpServletAccessProviderManager;
-import org.sakaiproject.entitybroker.impl.EntityHandler;
+import org.sakaiproject.entitybroker.impl.EntityHandlerImpl;
 import org.sakaiproject.tool.api.SessionManager;
 
 /**
@@ -28,35 +38,31 @@ import org.sakaiproject.tool.api.SessionManager;
  * 
  * @author Antranig Basman (antranig@caret.cam.ac.uk)
  */
+@SuppressWarnings("deprecation")
 public class EntityBrokerHttpAccess implements HttpAccess {
 
    private static Log log = LogFactory.getLog(EntityBrokerHttpAccess.class);
 
    private HttpServletAccessProviderManager accessProviderManager;
-
    public void setAccessProviderManager(HttpServletAccessProviderManager accessProviderManager) {
       this.accessProviderManager = accessProviderManager;
    }
 
    private SessionManager sessionManager;
-
    public void setSessionManager(SessionManager sessionManager) {
       this.sessionManager = sessionManager;
    }
 
-   private EntityHandler entityHandler;
-
-   public void setEntityHandler(EntityHandler entityHandler) {
+   private EntityHandlerImpl entityHandler;
+   public void setEntityHandler(EntityHandlerImpl entityHandler) {
       this.entityHandler = entityHandler;
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see org.sakaiproject.entity.api.HttpAccess#handleAccess(javax.servlet.http.HttpServletRequest,
-    *      javax.servlet.http.HttpServletResponse, org.sakaiproject.entity.api.Reference,
-    *      java.util.Collection)
+
+   /* (non-Javadoc)
+    * @see org.sakaiproject.entity.api.HttpAccess#handleAccess(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.sakaiproject.entity.api.Reference, java.util.Collection)
     */
+   @SuppressWarnings("unchecked")
    public void handleAccess(HttpServletRequest req, HttpServletResponse res, Reference ref,
          Collection copyrightAcceptedRefs) throws EntityPermissionException,
          EntityNotDefinedException {
@@ -82,10 +88,8 @@ public class EntityBrokerHttpAccess implements HttpAccess {
       try {
          provider.handleAccess(req, res, entityref);
       } catch (SecurityException e) {
-         throw new EntityPermissionException(sessionManager.getCurrentSessionUserId(), "read",
-               reference);
+         throw new EntityPermissionException(sessionManager.getCurrentSessionUserId(), "read", reference);
       }
-
    }
 
 }

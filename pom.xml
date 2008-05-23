@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
-   <parent>
-    <artifactId>base</artifactId>
-    <groupId>org.sakaiproject</groupId>
-    <version>M2</version>
-    <relativePath>../pom.xml</relativePath>
-   </parent>
    <name>Sakai Entity Broker</name>
    <groupId>org.sakaiproject</groupId>
    <artifactId>entitybroker</artifactId>
@@ -23,8 +16,18 @@
       more flexible. Our goals are to make the entity system easier on developers (easier to use and understand) and more powerful (easier to extend and
       improve). The Entity Broker integrates seamlessly with the existing Entity system in Sakai (Entity Producers and Entities) and entities created using
       entity providers are accessible in Sakai as if they were created using the legacy system.
+      Send feedback or comments to Aaron Zeckoski (azeckoski@gmail.com, aaronz@vt.edu)
    </description>
-   <version>1.2.0</version>
+   <version>1.3.3</version><!--entitybroker.version-->
+
+   <!-- Sakai master pom is parent -->
+   <parent>
+      <artifactId>master</artifactId>
+      <groupId>org.sakaiproject</groupId>
+<!--      <version>SNAPSHOT</version>-->
+       <version>M2</version>
+       <relativePath>../master/pom.xml</relativePath>
+   </parent>
 
    <!-- Define the modules that are part of this -->
    <modules>
@@ -33,7 +36,7 @@
       <module>tool</module>
       <module>pack</module>
       <module>mocks</module>
-      <module>shared-deployer</module>
+      <module>utils</module>
    </modules>
 
    <!-- Project developers -->
@@ -66,8 +69,27 @@
       </developer>
    </developers>
 
-   <!-- Distribution Management commented out as likely to clash with Sakai release artifact generation  -->
-   <!--
+   <repositories>
+      <repository>
+         <id>sakai-maven</id>
+         <name>Sakai Maven Repo</name>
+         <layout>default</layout>
+               <url>http://source.sakaiproject.org/maven2</url>
+         <snapshots>
+           <enabled>false</enabled>
+         </snapshots>
+      </repository>
+      <repository>
+         <id>default</id>
+         <name>Maven Repository Switchboard</name>
+         <layout>default</layout>
+               <url>http://repo1.maven.org/maven2</url>
+         <snapshots>
+           <enabled>false</enabled>
+         </snapshots>
+      </repository>
+   </repositories>
+
    <distributionManagement>
       <repository>
          <id>Sakai-Maven2</id> 
@@ -76,10 +98,14 @@
       </repository>
       <site>
          <id>local site</id>
-         <url>file:./site/</url>
+         <url>file:/tmp/entitybroker/site/</url>
       </site>
    </distributionManagement>
-   -->
+
+   <issueManagement>
+      <system>JIRA</system>
+      <url>http://jira.sakaiproject.org/jira/browse/SAK</url>
+   </issueManagement>
 
    <ciManagement>
       <system>Continuum</system>
@@ -108,50 +134,20 @@
       </notifiers>
    </ciManagement>
 
+   <!-- define the license -->
+   <licenses>
+      <license>
+         <name>Educational Community License, Version 1.0</name>
+         <url>http://www.opensource.org/licenses/ecl1.php</url>
+         <distribution>repo</distribution>
+      </license>
+   </licenses>
+
    <!-- define source code repository location -->
    <scm>
-    <connection>scm:svn:https://source.sakaiproject.org/svn/entitybroker/trunk</connection>
-    <developerConnection>scm:svn:https://source.sakaiproject.org/svn/entitybroker/trunk</developerConnection>
-    <url>https://source.sakaiproject.org/svn/entitybroker/trunk</url>
+    <connection>scm:svn:https://source.sakaiproject.org/svn/entitybroker/tags/1.3.3</connection>
+    <developerConnection>scm:svn:https://source.sakaiproject.org/svn/entitybroker/tags/1.3.3</developerConnection>
+    <url>https://source.sakaiproject.org/viewsvn/entitybroker/tags/1.3.3</url>
   </scm>
-  
-   <profiles>
-      <!-- Profile definition commented out as may clash with release artifact generation -->
-      <!--
-      <profile>
-         <id>release</id>
-         <build>
-            <plugins>
-               <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-javadoc-plugin</artifactId>
-                  <executions>
-                     <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                           <goal>jar</goal>
-                        </goals>
-                     </execution>
-                  </executions>
-               </plugin>
-            </plugins>
-         </build>
-      </profile>
-      -->
-   </profiles>
-	
-   <!-- No build for a base project -->
-   <!-- Build definition commented out as may clash with Sakai release artifact generation -->
-   <!--
-   <build>
-      <extensions>
-         <extension>
-            <groupId>org.apache.maven.wagon</groupId>
-            <artifactId>wagon-webdav</artifactId>
-            <version>1.0-beta-2</version>
-         </extension>
-      </extensions>
-   </build>
-   -->
 
 </project>

@@ -1,5 +1,15 @@
 /**
- * EntityBrokerEntityProducer.java - created by antranig on 14 May 2007
+ * $Id$
+ * $URL$
+ * EBlogic.java - entity-broker - Apr 15, 2008 4:29:18 PM - azeckoski
+ **************************************************************************
+ * Copyright (c) 2008 Centre for Applied Research in Educational Technologies, University of Cambridge
+ * Licensed under the Educational Community License version 1.0
+ * 
+ * A copy of the Educational Community License has been included in this 
+ * distribution and is available at: http://www.opensource.org/licenses/ecl1.php
+ *
+ * Aaron Zeckoski (azeckoski@gmail.com) (aaronz@vt.edu) (aaron@caret.cam.ac.uk)
  */
 
 package org.sakaiproject.entitybroker.impl.oldentity;
@@ -16,12 +26,11 @@ import org.sakaiproject.entity.api.EntityProducer;
 import org.sakaiproject.entity.api.HttpAccess;
 import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.entity.api.ResourceProperties;
-import org.sakaiproject.entitybroker.IdEntityReference;
 import org.sakaiproject.entitybroker.EntityReference;
 import org.sakaiproject.entitybroker.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybroker.entityprovider.EntityProvider;
 import org.sakaiproject.entitybroker.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybroker.impl.EntityHandler;
+import org.sakaiproject.entitybroker.impl.EntityHandlerImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -34,25 +43,21 @@ import org.w3c.dom.Element;
 public class EntityBrokerEntityProducer implements EntityProducer {
 
    private EntityManager entityManager;
-
    public void setEntityManager(EntityManager entityManager) {
       this.entityManager = entityManager;
    }
 
    private EntityProviderManager entityProviderManager;
-
    public void setEntityProviderManager(EntityProviderManager entityProviderManager) {
       this.entityProviderManager = entityProviderManager;
    }
 
-   private EntityHandler entityHandler;
-
-   public void setEntityHandler(EntityHandler entityHandler) {
+   private EntityHandlerImpl entityHandler;
+   public void setEntityHandler(EntityHandlerImpl entityHandler) {
       this.entityHandler = entityHandler;
    }
 
    private HttpAccess httpAccess;
-
    public void setHttpAccess(HttpAccess httpAccess) {
       this.httpAccess = httpAccess;
    }
@@ -67,7 +72,6 @@ public class EntityBrokerEntityProducer implements EntityProducer {
 
    /*
     * (non-Javadoc)
-    * 
     * @see org.sakaiproject.entity.api.EntityProducer#getEntity(org.sakaiproject.entity.api.Reference)
     */
    public Entity getEntity(Reference ref) {
@@ -95,16 +99,14 @@ public class EntityBrokerEntityProducer implements EntityProducer {
 
    /*
     * (non-Javadoc)
-    * 
     * @see org.sakaiproject.entity.api.EntityProducer#getEntityUrl(org.sakaiproject.entity.api.Reference)
     */
    public String getEntityUrl(Reference ref) {
-      return entityHandler.getEntityURL(ref.getReference());
+      return entityHandler.getEntityURL(ref.getReference(), null, null);
    }
 
    /*
     * (non-Javadoc)
-    * 
     * @see org.sakaiproject.entity.api.EntityProducer#getEntityResourceProperties(org.sakaiproject.entity.api.Reference)
     */
    public ResourceProperties getEntityResourceProperties(Reference ref) {
@@ -114,7 +116,6 @@ public class EntityBrokerEntityProducer implements EntityProducer {
 
    /*
     * (non-Javadoc)
-    * 
     * @see org.sakaiproject.entity.api.EntityProducer#parseEntityReference(java.lang.String,
     *      org.sakaiproject.entity.api.Reference)
     */
@@ -133,12 +134,11 @@ public class EntityBrokerEntityProducer implements EntityProducer {
       // only that the reference has a recognised prefix.
       EntityProvider entityProvider = entityProviderManager.getProviderByPrefix(entityref.prefix);
       if (entityProvider != null) {
-         String id = entityref instanceof IdEntityReference ? ((IdEntityReference) entityref).id
-               : null;
-         ref.set(entityref.prefix, null, id, null, null);
+         ref.set(entityref.getPrefix(), null, entityref.getId(), null, null);
          return true;
-      } else
+      } else {
          return false;
+      }
    }
 
    /*
@@ -156,6 +156,7 @@ public class EntityBrokerEntityProducer implements EntityProducer {
     * @see org.sakaiproject.entity.api.EntityProducer#archive(java.lang.String,
     *      org.w3c.dom.Document, java.util.Stack, java.lang.String, java.util.List)
     */
+   @SuppressWarnings("unchecked")
    public String archive(String siteId, Document doc, Stack stack, String archivePath,
          List attachments) {
       // TODO Auto-generated method stub
@@ -168,6 +169,7 @@ public class EntityBrokerEntityProducer implements EntityProducer {
     * @see org.sakaiproject.entity.api.EntityProducer#getEntityAuthzGroups(org.sakaiproject.entity.api.Reference,
     *      java.lang.String)
     */
+   @SuppressWarnings("unchecked")
    public Collection getEntityAuthzGroups(Reference ref, String userId) {
       // TODO Auto-generated method stub
       return null;
@@ -199,6 +201,7 @@ public class EntityBrokerEntityProducer implements EntityProducer {
     * @see org.sakaiproject.entity.api.EntityProducer#merge(java.lang.String, org.w3c.dom.Element,
     *      java.lang.String, java.lang.String, java.util.Map, java.util.Map, java.util.Set)
     */
+   @SuppressWarnings("unchecked")
    public String merge(String siteId, Element root, String archivePath, String fromSiteId,
          Map attachmentNames, Map userIdTrans, Set userListAllowImport) {
       // TODO Auto-generated method stub

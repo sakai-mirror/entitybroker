@@ -1,10 +1,24 @@
 /**
- * EntityProviderManager.java - created by aaronz on 11 May 2007
- */
+ * $Id$
+ * $URL$
+ * AutoRegister.java - entity-broker - 31 May 2007 7:01:11 PM - azeckoski
+ **************************************************************************
+ * Copyright (c) 2008 Centre for Applied Research in Educational Technologies, University of Cambridge
+ * Licensed under the Educational Community License version 1.0
+ * 
+ * A copy of the Educational Community License has been included in this 
+ * distribution and is available at: http://www.opensource.org/licenses/ecl1.php
+ *
+ * Aaron Zeckoski (azeckoski@gmail.com) (aaronz@vt.edu) (aaron@caret.cam.ac.uk)
+ **/
 
 package org.sakaiproject.entitybroker.entityprovider;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import org.sakaiproject.entitybroker.entityprovider.capabilities.AutoRegisterEntityProvider;
 
 /**
  * Handles all internal work of managing and working with the entity providers<br/> <br/>
@@ -33,6 +47,7 @@ public interface EntityProviderManager {
     *           a globally unique reference to an entity
     * @return the {@link EntityProvider} which handles this entity or null if none exists, fails if
     *         the reference is invalid
+    * @deprecated this method is no longer functional or supported
     */
    public EntityProvider getProviderByReference(String reference);
 
@@ -42,8 +57,7 @@ public interface EntityProviderManager {
     * may handle many other things as well), the basic {@link EntityProvider} if there is no
     * {@link CoreEntityProvider}, OR null if neither exists
     * 
-    * @param prefix
-    *           the string which represents a type of entity handled by an entity provider
+    * @param prefix the string which represents a type of entity handled by an entity provider
     * @return the {@link EntityProvider} which handles this entity or null if none exists (only if
     *         prefix is not used)
     */
@@ -54,6 +68,7 @@ public interface EntityProviderManager {
     * handles a specific capability <br/> <b>NOTE:</b> this returns the provider that handles this
     * capability (it may handle many other things as well)
     * 
+    * @param <T> a class which extends {@link EntityProvider}
     * @param prefix
     *           the string which represents a type of entity handled by an entity provider
     * @param capability
@@ -62,8 +77,27 @@ public interface EntityProviderManager {
     * @return the {@link EntityProvider} which handles this capability for this prefix or null if
     *         none exists or the prefix is not used
     */
-   public EntityProvider getProviderByPrefixAndCapability(String prefix,
-         Class<? extends EntityProvider> capability);
+   public <T extends EntityProvider> T getProviderByPrefixAndCapability(String prefix, Class<T> capability);
+
+   /**
+    * Get all the capabilities for a given entity prefix,
+    * <b>WARNING:</b> This is very inefficient so you should normally use {@link #getProviderByPrefixAndCapability(String, Class)}
+    * when trying to determine if a provider implements a specific capability
+    * 
+    * @param prefix
+    *           the string which represents a type of entity handled by an entity provider
+    * @return a list of the capabilities classes implemented by the entity provider defining this prefix
+    */
+   public List<Class<? extends EntityProvider>> getPrefixCapabilities(String prefix);
+
+   /**
+    * Get all registered prefixes and their capabilities,
+    * <b>WARNING:</b> This is very inefficient so you should normally use {@link #getProviderByPrefixAndCapability(String, Class)}
+    * when trying to determine if a provider implements a specific capability
+    * 
+    * @return a map of prefix -> List(capabilities)
+    */
+   public Map<String, List<Class<? extends EntityProvider>>> getRegisteredEntityCapabilities();
 
    /**
     * Registers an entity provider with the manager, this allows registration to happen

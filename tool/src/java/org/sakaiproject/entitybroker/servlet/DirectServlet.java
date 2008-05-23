@@ -1,5 +1,15 @@
 /**
- * DirectServlet.java - created by someone on 31 May 2007
+ * $Id$
+ * $URL$
+ * Example.java - entity-broker - 31 May 2007 7:01:11 PM - azeckoski
+ **************************************************************************
+ * Copyright (c) 2008 Centre for Applied Research in Educational Technologies, University of Cambridge
+ * Licensed under the Educational Community License version 1.0
+ * 
+ * A copy of the Educational Community License has been included in this 
+ * distribution and is available at: http://www.opensource.org/licenses/ecl1.php
+ *
+ * Aaron Zeckoski (azeckoski@gmail.com) (aaronz@vt.edu) (aaron@caret.cam.ac.uk)
  */
 
 package org.sakaiproject.entitybroker.servlet;
@@ -15,12 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.cover.ComponentManager;
-import org.sakaiproject.entitybroker.EntityBroker;
-import org.sakaiproject.entitybroker.EntityReference;
-import org.sakaiproject.entitybroker.access.HttpServletAccessProvider;
-import org.sakaiproject.entitybroker.access.HttpServletAccessProviderManager;
-import org.sakaiproject.entitybroker.entityprovider.capabilities.ReferenceParseable;
-import org.sakaiproject.entitybroker.util.ClassLoaderReporter;
+import org.sakaiproject.entitybroker.EntityRequestHandler;
+import org.sakaiproject.entitybroker.exception.EntityException;
 import org.sakaiproject.tool.api.ActiveTool;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.Tool;
@@ -32,16 +38,20 @@ import org.sakaiproject.util.Web;
 
 /**
  * Direct servlet allows unfettered access to entity URLs within Sakai, it also handles
- * authentication (login) if required (without breaking an entity URL)<br/> This primarily differs
- * from the access servlet in that it allows posts to work and removes most of the proprietary
- * checks
+ * authentication (login) if required (without breaking an entity URL)<br/>
+ * This primarily differs from the access servlet in that it allows posts to work 
+ * and removes most of the proprietary checks
  * 
- * @author someone crazy... quit looking at me!
+ * @author Aaron Zeckoski (aaron@caret.cam.ac.uk)
+ * @author Antranig Basman (antranig@caret.cam.ac.uk)
  * @author Sakai Software Development Team
  */
 public class DirectServlet extends HttpServlet {
 
    private static Log log = LogFactory.getLog(DirectServlet.class);
+
+   // must be the same as the string in EntityHandlerImpl with the same name
+   private static final String ORIGINAL_METHOD = "_originalMethod";
 
    /**
     * set to true when initialization complete
@@ -50,9 +60,7 @@ public class DirectServlet extends HttpServlet {
 
    private BasicAuth basicAuth;
 
-   private HttpServletAccessProviderManager accessProviderManager;
-
-   private EntityBroker entityBroker;
+   private EntityRequestHandler entityRequestHandler;
 
    /**
     * Checks dependencies and loads/inits them if needed<br/> <br/> Note: There is currently no way
@@ -65,11 +73,8 @@ public class DirectServlet extends HttpServlet {
       try {
          basicAuth = new BasicAuth();
          basicAuth.init();
-         accessProviderManager = (HttpServletAccessProviderManager) ComponentManager
-               .get("org.sakaiproject.entitybroker.access.HttpServletAccessProviderManager");
-         entityBroker = (EntityBroker) ComponentManager
-               .get("org.sakaiproject.entitybroker.EntityBroker");
-         if (accessProviderManager != null || entityBroker != null) {
+         entityRequestHandler = (EntityRequestHandler) ComponentManager.get("org.sakaiproject.entitybroker.EntityRequestHandler");
+         if (entityRequestHandler != null) {
             initComplete = true;
          }
       } catch (Exception e) {
@@ -134,60 +139,54 @@ public class DirectServlet extends HttpServlet {
          path = "";
       }
 
-      if (!initComplete) {
-         sendError(res, HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+      if (! initComplete) {
+         sendError(res, HttpServletResponse.SC_SERVICE_UNAVAILABLE, 
+               "Could not initialize the needed Sakai components");
          return;
       }
 
-      // logically, we only want to let this request continue on if the entity exists AND
-      // there is an http access provider to handle it AND the user can access it
-      // (there is some auth completed already or no auth is required)
+      // mark the direct entity request for this session
+      SessionManager.getCurrentSession().setAttribute("sakaiEntity-direct", path);
+
+      // this cannot work because the original request data is lost
+//      // check for the originalMethod and store it in an attribute
+//      if (req.getParameter(ORIGINAL_METHOD) != null) {
+//         req.setAttribute(ORIGINAL_METHOD, req.getParameter(ORIGINAL_METHOD));
+//      }
+
+      // just handle the request if possible or pass along the failure codes so it can be understood
       try {
-         EntityReference ref = entityBroker.parseReference(path);
-         if (ref == null || !entityBroker.entityExists(ref.toString())) {
-            log.warn("Attempted to access an entity URL path (" + path + ") for an entity ("
-                  + ref.toString() + ") that does not exist");
-            sendError(res, HttpServletResponse.SC_NOT_FOUND);
-         } else {
-            HttpServletAccessProvider accessProvider = accessProviderManager
-                  .getProvider(ref.prefix);
-            if (accessProvider == null) {
-               log.warn("Attempted to access an entity URL path ("
-                           + path + ") for an entity (" + ref.toString()
-                           + ") when there is no HttpServletAccessProvider to handle the request for prefix ("
-                           + ref.prefix + ")");
-               sendError(res, HttpServletResponse.SC_NOT_FOUND);
-            } else {
-               ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
-               try {
-                  ClassLoader newClassLoader = accessProvider.getClass().getClassLoader();
-                  // check to see if this access provider reports the correct classloader
-                  if (accessProvider instanceof ClassLoaderReporter) {
-                     newClassLoader = ((ClassLoaderReporter) accessProvider).getSuitableClassLoader();
-                  }
-                  Thread.currentThread().setContextClassLoader(newClassLoader);
-                  // send request to the access provider which will route it on to the correct entity world
-                  accessProvider.handleAccess(req, res, ref);
-               } finally {
-                  Thread.currentThread().setContextClassLoader(currentClassLoader);
-               }
+         try {
+            entityRequestHandler.handleEntityAccess(req, res, path);
+         } catch (EntityException e) {
+            log.warn("Could not process entity: " + e.entityReference);
+            if (e.responseCode == HttpServletResponse.SC_UNAUTHORIZED ||
+                  e.responseCode == HttpServletResponse.SC_FORBIDDEN) {
+               throw new SecurityException(e.getMessage(), e);
             }
+            sendError(res, e.responseCode, e.getMessage());
          }
       } catch (SecurityException e) {
          // the end user does not have permission - offer a login if there is no user id yet
-         // established,
-         // if not permitted, and the user is the anon user, let them login
+         // established,  if not permitted, and the user is the anon user, let them login
          if (SessionManager.getCurrentSessionUserId() == null) {
             log.debug("Attempted to access an entity URL path (" + path
                   + ") for a resource which requires authentication without a session", e);
+//            // store the original request type and query string, this is needed because the method gets lost when Sakai handles the login
+//            path = path + (req.getQueryString() == null ? "?" : "?"+req.getQueryString()) + ORIGINAL_METHOD + "=" + req.getMethod();
+            path = path + (req.getQueryString() == null ? "" : "?"+req.getQueryString()); // preserve the query string
             doLogin(req, res, path);
+            return;
          }
          // otherwise reject the request
-         sendError(res, HttpServletResponse.SC_FORBIDDEN);
+         String msg = "Security exception accessing entity URL: " + path + " (current user not allowed): " + e.getMessage();
+         log.warn(msg);
+         sendError(res, HttpServletResponse.SC_FORBIDDEN, msg);
       } catch (Exception e) {
          // all other cases
-         log.warn("dispatch(): exception: ", e);
-         sendError(res, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+         String msg = "Unknown exception with direct entity URL: dispatch(): exception: " + e.getMessage() + " (see server logs for more details)";
+         log.warn(msg, e);
+         sendError(res, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, msg);
       }
 
    }
@@ -231,8 +230,7 @@ public class DirectServlet extends HttpServlet {
          log.warn("doLogin - proceeding with null HELPER_DONE_URL");
       }
 
-      // map the request to the helper, leaving the path after ".../options" for
-      // the helper
+      // map the request to the helper, leaving the path after ".../options" for the helper
       ActiveTool tool = ActiveToolManager.getActiveTool("sakai.login");
       String context = req.getContextPath() + req.getServletPath() + "/login";
       tool.help(req, res, context, "/login");
@@ -241,14 +239,13 @@ public class DirectServlet extends HttpServlet {
    /**
     * handles sending back servlet errors to the client
     * 
-    * @param res
-    *           (back to the client)
-    * @param code
-    *           servlet error response code
+    * @param res (back to the client)
+    * @param code servlet error response code
+    * @param message extra info about the error
     */
-   protected void sendError(HttpServletResponse res, int code) {
+   protected void sendError(HttpServletResponse res, int code, String message) {
       try {
-         res.sendError(code);
+         res.sendError(code, message);
       } catch (Throwable t) {
          log.warn(t.getMessage(), t);
       }
