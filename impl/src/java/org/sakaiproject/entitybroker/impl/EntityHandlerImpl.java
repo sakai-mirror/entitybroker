@@ -1102,7 +1102,7 @@ public class EntityHandlerImpl implements EntityRequestHandler {
             StringBuilder sb = new StringBuilder();
             // make header
             if (Formats.JSON.equals(format)) {
-               sb.append("{\""+ENTITY_PREFIX+"\": "+ref.getPrefix() + ", \"" + ref.getPrefix() + COLLECTION + "\": [\n");
+               sb.append("{\""+ENTITY_PREFIX+"\": \""+ref.getPrefix() + "\", \"" + ref.getPrefix() + COLLECTION + "\": [\n");
             } else { // assume XML
                sb.append("<" + ref.getPrefix() + COLLECTION + " " + ENTITY_PREFIX + "=\"" + ref.getPrefix() + "\">\n");
             }
@@ -1179,17 +1179,21 @@ public class EntityHandlerImpl implements EntityRequestHandler {
    private EntityXStream getEncoderForFormat(String format, boolean output) {
       EntityXStream encoder = null;
       if (Formats.JSON.equals(format)) {
-         if (output) {
-            if (! xstreams.containsKey(format)) {
-               xstreams.put( format, new EntityXStream(new JsonHierarchicalStreamDriver()) );
-            }
-         } else {
-            format += "-IN";
-            if (! xstreams.containsKey(format)) {
-               xstreams.put( format, new EntityXStream(new JettisonMappedXmlDriver()) );
-            }
-         }
-         encoder = xstreams.get(format);
+         // http://jira.sakaiproject.org/jira/browse/SAK-13681
+//       if (output) {
+//          if (! xstreams.containsKey(format)) {
+//             xstreams.put( format, new EntityXStream(new JsonHierarchicalStreamDriver()) );
+//          }
+//       } else {
+//          format += "-IN";
+//          if (! xstreams.containsKey(format)) {
+//             xstreams.put( format, new EntityXStream(new JettisonMappedXmlDriver()) );
+//          }
+//       }
+       if (! xstreams.containsKey(format)) {
+          xstreams.put( format, new EntityXStream(new JettisonMappedXmlDriver()) );
+       }
+       encoder = xstreams.get(format);
       } else if (Formats.XML.equals(format)) {
          if (! xstreams.containsKey(format)) {
             xstreams.put( format, new EntityXStream(new XppDomDriver()) );
