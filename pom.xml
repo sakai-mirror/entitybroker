@@ -30,15 +30,6 @@
    </parent>
 
 
-   <!-- Define the modules that are part of this -->
-   <modules>
-      <module>api</module>
-      <module>impl</module>
-      <module>tool</module>
-      <module>pack</module>
-      <module>mocks</module>
-      <module>utils</module>
-   </modules>
     <!-- Define the modules that are part of this -->
     <profiles>
         <profile>
