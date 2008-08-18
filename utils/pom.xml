@@ -1,7 +1,4 @@
-<?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>Sakai Entity Broker Utilities</name>
     <groupId>org.sakaiproject.entitybroker</groupId>
@@ -12,29 +9,43 @@
     </organization>
     <inceptionYear>2007</inceptionYear>
     <packaging>jar</packaging>
+
     <!-- the base is parent -->
     <parent>
         <artifactId>entitybroker</artifactId>
         <groupId>org.sakaiproject</groupId>
-        <version>1.3.4-SNAPSHOT</version>
+        <version>1.3.4</version>
         <!--entitybroker.version-->
     </parent>
+
     <dependencies>
-        <dependency>
-            <groupId>org.sakaiproject.kernel</groupId>
-            <artifactId>sakai-component-manager</artifactId>
-        </dependency>
         <!-- internal dependencies -->
         <dependency>
             <groupId>org.sakaiproject.entitybroker</groupId>
             <artifactId>entitybroker-api</artifactId>
         </dependency>
+
         <!-- for reloadable proxy -->
-        <!--org.sakaiprojectsakai-component-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring</artifactId>
         </dependency>
+
+        <!-- Sakai K1 -->
+<!-- 
+        <dependency>
+            <groupId>org.sakaiproject.kernel</groupId>
+            <artifactId>sakai-component-manager</artifactId>
+        </dependency>
+-->
+
+        <!-- Sakai preK1 -->
+        <dependency>
+            <groupId>org.sakaiproject</groupId>
+            <artifactId>sakai-component</artifactId>
+        </dependency>
+
+
         <!-- required for bean cloning and reflection -->
         <dependency>
             <groupId>commons-beanutils</groupId>
@@ -48,6 +59,7 @@
             <version>3.2</version>
             <type>jar</type>
         </dependency>
+
         <!-- required for sending http requests -->
         <dependency>
             <groupId>commons-httpclient</groupId>
