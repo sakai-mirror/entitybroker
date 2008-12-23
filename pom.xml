@@ -29,7 +29,6 @@
        <relativePath>../master/pom.xml</relativePath>
    </parent>
 
-
     <!-- Define the modules that are part of this -->
     <profiles>
         <profile>
@@ -66,7 +65,6 @@
         </profile>
     </profiles>
 
-
    <!-- Project developers -->
    <developers>
       <developer>
@@ -96,80 +94,6 @@
          <timezone>0</timezone>
       </developer>
    </developers>
-
-   <repositories>
-      <repository>
-         <id>sakai-maven</id>
-         <name>Sakai Maven Repo</name>
-         <layout>default</layout>
-               <url>http://source.sakaiproject.org/maven2</url>
-         <snapshots>
-           <enabled>false</enabled>
-         </snapshots>
-      </repository>
-      <repository>
-         <id>default</id>
-         <name>Maven Repository Switchboard</name>
-         <layout>default</layout>
-               <url>http://repo1.maven.org/maven2</url>
-         <snapshots>
-           <enabled>false</enabled>
-         </snapshots>
-      </repository>
-   </repositories>
-
-   <distributionManagement>
-      <repository>
-         <id>Sakai-Maven2</id> 
-         <name>Sakaiproject Maven 2 repository</name> 
-         <url>dav:https://source.sakaiproject.org/maven2</url> 
-      </repository>
-      <site>
-         <id>local site</id>
-         <url>file:/tmp/entitybroker/site/</url>
-      </site>
-   </distributionManagement>
-
-   <issueManagement>
-      <system>JIRA</system>
-      <url>http://jira.sakaiproject.org/jira/browse/SAK</url>
-   </issueManagement>
-
-   <ciManagement>
-      <system>Continuum</system>
-      <url>http://saffron.caret.cam.ac.uk/continuum</url>
-      <notifiers>
-         <notifier>
-            <type>mail</type>
-            <sendOnError>true</sendOnError>
-            <sendOnFailure>true</sendOnFailure>
-            <sendOnSuccess>false</sendOnSuccess>
-            <sendOnWarning>false</sendOnWarning>
-            <configuration>
-               <address>aaron@caret.cam.ac.uk</address>
-            </configuration>
-         </notifier>
-         <notifier>
-            <type>mail</type>
-            <sendOnError>true</sendOnError>
-            <sendOnFailure>true</sendOnFailure>
-            <sendOnSuccess>false</sendOnSuccess>
-            <sendOnWarning>false</sendOnWarning>
-            <configuration>
-               <address>antranig@caret.cam.ac.uk</address>
-            </configuration>
-         </notifier>
-      </notifiers>
-   </ciManagement>
-
-   <!-- define the license -->
-   <licenses>
-      <license>
-         <name>Educational Community License, Version 1.0</name>
-         <url>http://www.opensource.org/licenses/ecl1.php</url>
-         <distribution>repo</distribution>
-      </license>
-   </licenses>
 
    <!-- define source code repository location -->
    <scm>
