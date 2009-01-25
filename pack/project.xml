@@ -72,7 +72,37 @@
             </properties>
         </dependency>
 
+    <dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.2</version>
+			<type>jar</type>
+			<properties>
+				<war.bundle>true</war.bundle>
+			</properties>
+		</dependency>
+
+    <dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.1</version>
+			<type>jar</type>
+			<properties>
+				<war.bundle>true</war.bundle>
+			</properties>
+		</dependency>
+
+    <dependency>
+            <groupId>sakaiproject</groupId>
+            <artifactId>sakai-util</artifactId>
+            <version>${sakai.version}</version>
+            <properties>
+                <war.bundle>true</war.bundle>
+            </properties>
+        </dependency>
+
 		<!-- Data processing -->
+<!--
 		<dependency>
 			<groupId>xstream</groupId>
 			<artifactId>xstream</artifactId>
@@ -112,8 +142,9 @@
                 <war.bundle>true</war.bundle>
             </properties>
         </dependency>
-
+-->
 		<!-- required for bean cloning -->
+<!--
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
@@ -123,7 +154,7 @@
 				<war.bundle>true</war.bundle>
 			</properties>
 		</dependency>
-
+-->
 <!-- in shared already
 		<dependency>
 			<groupId>commons-collections</groupId>
