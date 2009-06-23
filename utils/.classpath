@@ -1,0 +1,14 @@
+<classpath>
+  <classpathentry kind="src" path="." including="*.txt|src/**/*.java|src/**/*.html|src/**/*.xml|src/**/*.properties" excluding="**/*.java"/>
+  <classpathentry kind="src" path="src/java"/>
+  <classpathentry kind="src" path="src/test" output="m2-target/test-classes"/>
+  <classpathentry kind="output" path="m2-target/classes"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.8.0-BETA/commons-beanutils-1.8.0-BETA.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2/commons-collections-3.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
+  <classpathentry kind="src" path="/entitybroker-api"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar"/>
+  <classpathentry kind="src" path="/sakai-component"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring/2.0.6/spring-2.0.6.jar"/>
+</classpath>
