@@ -89,6 +89,7 @@
             </modules>
         </profile>
     </profiles>
+    
 <!-- Project developers -->
     <developers>
         <developer>
@@ -125,6 +126,7 @@
         <developerConnection>scm:svn:https://source.sakaiproject.org/svn/entitybroker/tags/entitybroker-1.3.6</developerConnection>
         <url>https://source.sakaiproject.org/viewsvn/entitybroker/tags/entitybroker-1.3.6</url>
     </scm>
+    
 <!-- handles the management of entitybroker related dependencies -->
     <dependencyManagement>
         <dependencies>
@@ -209,16 +211,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-
 </project>
