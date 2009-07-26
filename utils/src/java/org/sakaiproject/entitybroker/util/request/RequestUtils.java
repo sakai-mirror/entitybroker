@@ -363,6 +363,8 @@ public class RequestUtils {
             encoding = Formats.HTML_MIME_TYPE;
         } else if (Formats.JSON.equals(format)) {
             encoding = Formats.JSON_MIME_TYPE;
+        } else if (Formats.JSONP.equals(format)) {
+            encoding = Formats.JSONP_MIME_TYPE;
         } else if (Formats.RSS.equals(format)) {
             encoding = Formats.RSS_MIME_TYPE;                        
         } else if (Formats.ATOM.equals(format)) {

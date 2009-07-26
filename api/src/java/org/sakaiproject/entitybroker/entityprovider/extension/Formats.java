@@ -53,6 +53,14 @@ public interface Formats {
    public static String JSON = "json";
    public static String JSON_MIME_TYPE = "text/plain"; //"application/json"; // switched to plain so it easier to work with
    /**
+    * JSON formatted text with JSONP callback (application/javascript) <br/>
+    * http://en.wikipedia.org/wiki/JSON <br/>
+    * INPUT: -not supported, see JSON-
+    * OUTPUT: JSON text with callback (jsonEntityFeed({...}) by default) <br/>
+    */
+   public static String JSONP = "jsonp";
+   public static String JSONP_MIME_TYPE = "application/javascript";
+   /**
     * Plain text (text/plain) <br/>
     * http://en.wikipedia.org/wiki/Plain_text <br/>
     * INPUT: -not supported- <br/>
@@ -89,7 +97,7 @@ public interface Formats {
     * the array of all the known formats in this file
     */
    public static String[] ALL_KNOWN_FORMATS = new String[] {
-      HTML, XML, JSON, TXT, RSS, ATOM
+      HTML, XML, JSON, JSONP, TXT, RSS, ATOM
    };
 
 }

@@ -78,7 +78,10 @@ public class EntityEncodingManager {
     private static Log log = LogFactory.getLog(EntityEncodingManager.class);
 
     public static final String[] HANDLED_INPUT_FORMATS = new String[] { Formats.XML, Formats.JSON, Formats.HTML };
-    public static final String[] HANDLED_OUTPUT_FORMATS = new String[] { Formats.XML, Formats.JSON, Formats.HTML };
+    public static final String[] HANDLED_OUTPUT_FORMATS = new String[] { Formats.XML, Formats.JSON, Formats.JSONP, Formats.HTML };
+    
+    public static final String JSON_CALLBACK_PARAM = "jsonCallback";
+    public static final String JSON_DEFAULT_CALLBACK = "jsonEntityFeed";
 
 
     protected EntityEncodingManager() { }
@@ -419,7 +422,7 @@ public class EntityEncodingManager {
             // make header
             if (Formats.HTML.equals(format)) {
                 sb.append("<h1>"+ref.getPrefix() + COLLECTION + "</h1>\n");
-            } else if (Formats.JSON.equals(format)) {
+            } else if (Formats.JSON.equals(format) || Formats.JSONP.equals(format)) {
                 sb.append("{\""+ENTITY_PREFIX+"\": \""+ref.getPrefix() + "\", \"" + ref.getPrefix() + COLLECTION + "\": [\n");
             } else if (Formats.XML.equals(format)) {
                 sb.append("<" + ref.getPrefix() + COLLECTION + " " + ENTITY_PREFIX + "=\"" + ref.getPrefix() + "\">\n");
@@ -433,7 +436,7 @@ public class EntityEncodingManager {
                 try {
                     String encode = encodeEntity(ref.getPrefix(), format, entity);
                     if (encode.length() > 3) {
-                        if (Formats.JSON.equals(format) 
+                        if ((Formats.JSON.equals(format) || Formats.JSONP.equals(format)) 
                                 && encodedEntities > 0) {
                             sb.append(",");
                         }
@@ -448,7 +451,7 @@ public class EntityEncodingManager {
             // make footer
             if (Formats.HTML.equals(format)) {
                 sb.append("\n<b>Collection size:</b> "+encodedEntities+"\n");
-            } else if (Formats.JSON.equals(format)) {
+            } else if (Formats.JSON.equals(format) || Formats.JSONP.equals(format)) {
                 sb.append("\n]}");
             } else if (Formats.XML.equals(format)) {
                 sb.append("</" + ref.getPrefix() + COLLECTION + ">");
@@ -470,6 +473,15 @@ public class EntityEncodingManager {
                 }
             }
         }
+
+        if (Formats.JSONP.equals(format)) {
+        	String callback = JSON_DEFAULT_CALLBACK;
+        	if (params != null && params.containsKey(JSON_CALLBACK_PARAM)) {
+        		callback = sanitizeJsonCallback(params.get(JSON_CALLBACK_PARAM));
+        	}
+        	encoded = callback + "(" + encoded + ")";
+        }
+
         // put the encoded data into the stream
         try {
             byte[] b = encoded.getBytes(Formats.UTF_8);
@@ -595,6 +607,7 @@ public class EntityEncodingManager {
             transcoders = new HashMap<String, Transcoder>();
             JSONTranscoder jt = new JSONTranscoder(true, true, false);
             transcoders.put(jt.getHandledFormat(), jt);
+            transcoders.put(Formats.JSONP, jt);
             XMLTranscoder xt = new XMLTranscoder(true, true, false, false);
             transcoders.put(xt.getHandledFormat(), xt);
             HTMLTranscoder ht = new HTMLTranscoder();
@@ -633,6 +646,20 @@ public class EntityEncodingManager {
             }
         }
         return encoded;
+    }
+    
+    /**
+     * Clean the JSONP callback parameter to make sure it is sensible
+     * @param param The parameter for the callback, should be a String
+     * @return The string version of the param or the default callback name
+     */
+    protected String sanitizeJsonCallback(Object param) {
+        //We might want to sanitize down to something that looks like a valid function call
+        //This shouldn't be necessary, though, since it will just either work or not 
+        if (param == null || !(param instanceof String))
+            return JSON_DEFAULT_CALLBACK;
+        else
+            return param.toString();
     }
 
     /**
