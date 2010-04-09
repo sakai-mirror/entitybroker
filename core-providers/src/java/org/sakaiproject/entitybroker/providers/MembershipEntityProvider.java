@@ -50,6 +50,7 @@ import org.sakaiproject.entitybroker.entityprovider.extension.Formats;
 import org.sakaiproject.entitybroker.entityprovider.search.Order;
 import org.sakaiproject.entitybroker.entityprovider.search.Restriction;
 import org.sakaiproject.entitybroker.entityprovider.search.Search;
+import org.sakaiproject.entitybroker.exception.EntityNotFoundException;
 import org.sakaiproject.entitybroker.providers.model.EntityMember;
 import org.sakaiproject.entitybroker.providers.model.EntityUser;
 import org.sakaiproject.entitybroker.util.AbstractEntityProvider;
@@ -725,7 +726,12 @@ public class MembershipEntityProvider extends AbstractEntityProvider implements 
     public List<EntityMember> getMembers(String locationReference) {
         ArrayList<EntityMember> l = new ArrayList<EntityMember>();
         Set<Member> members = null;
-        SiteGroup sg = findLocationByReference(locationReference);
+        SiteGroup sg;
+        try {
+            sg = findLocationByReference(locationReference);
+        } catch (IllegalArgumentException e) {
+            throw new EntityNotFoundException("Could not find the location based on the ref ("+locationReference+"): " + e, locationReference);
+        }
         isAllowedAccessMembers(sg.site);
         if (sg.group == null) {
             // site only
@@ -769,7 +775,10 @@ public class MembershipEntityProvider extends AbstractEntityProvider implements 
             }
             locationReference = "/group/" + groupId;
             Group group = siteService.findGroup(groupId);
-            //FIXME if an invalid group ID is passed this NPE's
+            // an invalid group ID might be passed which results in a null here
+            if (group == null) {
+                throw new IllegalArgumentException("No group found for id: "+groupId);
+            }
             Site site = group.getContainingSite();
             holder.locationReference = locationReference;
             holder.group = group;
