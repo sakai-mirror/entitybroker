@@ -189,14 +189,6 @@
         </repository>
     </repositories>
     
-    <distributionManagement>
-        <site>
-            <id>sakai-site</id>
-            <name>Sakai release Site</name>
-            <url>scpexe://source.sakaiproject.org/var/www/html/release/entitybroker/${project.version}</url>
-        </site>
-    </distributionManagement>
-    
     <issueManagement>
         <system>JIRA</system>
         <url>http://jira.sakaiproject.org/jira/browse/SAK</url>
