@@ -143,7 +143,8 @@ public class SakaiExternalIntegrationProvider implements ExternalIntegrationProv
      * @see org.sakaiproject.entitybroker.providers.ExternalIntegrationProvider#handleUserSessionKey(javax.servlet.http.HttpServletRequest)
      */
     public void handleUserSessionKey(HttpServletRequest req) {
-        // SAKAI
+        // SAKAI        
+        
         // http://jira.sakaiproject.org/jira/browse/SAK-14899 - added support for setting the sakai session id
         final String SAKAI_SESSION = "sakai.session";
         if (req.getParameter(SAKAI_SESSION) != null
@@ -165,6 +166,16 @@ public class SakaiExternalIntegrationProvider implements ExternalIntegrationProv
                 throw new IllegalArgumentException("Failure attempting to set sakai session id ("+sessionId+"): " + e.getMessage());
             }
         }
+        
+        //https://jira.sakaiproject.org/browse/SAK-25843 - validate session on each request, if param is set
+        final String VALIDATE_SESSION = "_validateSession";
+        if (req.getParameter(VALIDATE_SESSION) != null) {
+        	String current = sessionManager.getCurrentSessionUserId();
+        	if (current == null) {
+        		throw new SecurityException("Invalid session or session has timed out, and explicit session validation has been requested.");
+        	}
+        }
+        
     }
 
     /* (non-Javadoc)
